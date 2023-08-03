@@ -1,9 +1,23 @@
-import Image from 'next/image';
+// ./nextjs-app/app/pages/index.tsx
 
-export default function Home() {
-  return (
-    <main className='flex min-h-screen flex-col items-center justify-between p-24'>
-      <h1 className='text-4xl font-bold text-center'>hei</h1>
-    </main>
-  );
+import { draftMode } from 'next/headers';
+import { getCachedClient } from '@/sanity/lib/getClient';
+import { heroQuery } from '@/sanity/lib/queries';
+import Hero from '@/app/_components/hero';
+import PreviewHero from '@/app/_components/previews/hero-preview';
+import PreviewProvider from '@/app/_components/previews/preview-provider';
+
+export default async function Home() {
+  const preview = draftMode().isEnabled ? { token: process.env.SANITY_API_READ_TOKEN } : undefined;
+  const hero = await getCachedClient(preview)(heroQuery);
+
+  if (preview && preview.token) {
+    return (
+      <PreviewProvider token={preview.token}>
+        <PreviewHero hero={hero} />
+      </PreviewProvider>
+    );
+  }
+
+  return <Hero hero={hero} />;
 }
